@@ -13,9 +13,9 @@ executables = [
 # Executable('newimages.py', base=base, compress = True, icon = "newimages.ico"), Executable('update.py', base=base, compress = True)
 # Executable('newimages.py', base=base,compress = True, icon = "newimages.ico")
 setup(name='office2picture',
-      version = '1.0',
+      version = '2.0',
       description = 'Convert Office document to picture tools',
-      author = 'Face2group.com',
+      author = 'wwww.readmorejoy.com',
       author_email = 'luckrill@163.com',	  
       options = dict(build_exe = buildOptions),
       executables = executables)

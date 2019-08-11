@@ -1,0 +1,2 @@
+wxPython==4.0.6
+cx_Freeze==5.1.1

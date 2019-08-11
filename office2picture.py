@@ -7,7 +7,7 @@ import subprocess
 import codecs
 import shutil
 import time
-import win32com.client as win32
+# import win32com.client as win32
 import subprocess
 import importlib
 import smtplib
@@ -62,7 +62,7 @@ class DBfilenames():
         """load config info into current dict from config file"""
         if not os.path.exists(dbfilenames.config_file):
             return
-        fd = open(dbfilenames.config_file, mode='r')
+        fd = open(dbfilenames.config_file, mode='r', encoding="utf-8")
         while True:
             line = fd.readline()
             # print line
@@ -86,14 +86,14 @@ class DBfilenames():
 
     def ConfigSave(self):
         """save window config info to current dict and config file"""
-        fd = open(dbfilenames.config_file, 'w')
+        fd = open(dbfilenames.config_file, 'w', encoding="utf-8")
         for key in list(dbfilenames.current.keys()):
             fd.write(str(key) + " = " + str(dbfilenames.current[key]) + "\n")
         fd.close()
 
 class MainFrame(wx.Frame):
     def __init__(self):
-        wx.Frame.__init__(self, None, -1, "Office2Picture", size=(900, 700))
+        wx.Frame.__init__(self, None, -1, "Office2Picture", size=(900, 800))
         self.SetIcon(wx.Icon('myicon.ico', wx.BITMAP_TYPE_ICO))
 
         self.Centre()
@@ -115,28 +115,30 @@ class MainFrame(wx.Frame):
         self.button_to_picture = wx.Button(panel, -1, label=_("Change to Picture"))
         button_setup = wx.Button(panel, -1, label=_("Setup"))
         button_tellme = wx.Button(panel, -1, label=_("TellMe"))
+        button_tellme.SetToolTip("TellMe Something ... Please")
         button_close = wx.Button(panel, -1, label=_("Close"))
 
-        label_listbox = wx.StaticText(panel, -1, _("Files"), size=(60, -1))
-        label_logs = wx.StaticText(panel, -1, _("Logs"), size=(60, -1))
+        label_listbox = wx.StaticText(panel, -1, _("Select Files"), size=(100, -1))
+        label_logs = wx.StaticText(panel, -1, _("Work Logs"), size=(100, -1))
         self.listbox = wx.ListBox(panel, -1, (20, 20), (380, 500), [], wx.LB_EXTENDED)
         self.text_multi_text = wx.TextCtrl(panel, -1, "", size=(380, 500), style=wx.TE_MULTILINE)
         self.text_multi_text.SetValue("Enjoy Light \nPlease add office files at first \nSupport Word, PowerPoint, Excel, PDF document \nThen execute 'Change to Picture'")
 
-        list_add_files = wx.Button(panel, -1, label=_("Add Files"))
+        self.list_add_files = wx.Button(panel, -1, label=_("Add Files"))
         list_add_path = wx.Button(panel, -1, label=_("Add Path"))
         list_clear = wx.Button(panel, -1, label=_("Clear"))
         list_remove = wx.Button(panel, -1, label=_("Remove"))
-        list_close = wx.Button(panel, -1, label=_("Close"))
+
 
         sizer = wx.BoxSizer(wx.VERTICAL)
         vbox_list = wx.BoxSizer(wx.HORIZONTAL)
-        vbox_list_cmd = wx.BoxSizer(wx.VERTICAL)
+        vbox_list_cmd = wx.BoxSizer(wx.HORIZONTAL)
+
 
         vbox_output = wx.BoxSizer(wx.HORIZONTAL)
         vbox_output.Add((10, 10))
         vbox_output.Add(button_output, 0, wx.ALIGN_LEFT|wx.ALIGN_CENTER)
-        vbox_output.Add((3, 3))
+        vbox_output.Add((5, 5))
         vbox_output.Add(self.text_output, 0, wx.ALIGN_LEFT|wx.ALIGN_CENTER)
         vbox_output.Add((50, 50))
         vbox_output.Add(self.button_to_picture, 0, wx.ALIGN_CENTER)
@@ -153,41 +155,44 @@ class MainFrame(wx.Frame):
 
         vbox_multi_text = wx.BoxSizer(wx.VERTICAL)
         vbox_multi_text.Add(label_logs, 0, wx.ALIGN_LEFT)
-        vbox_multi_text.Add(self.text_multi_text, 0, wx.EXPAND)
+        vbox_multi_text.Add(self.text_multi_text, 1, wx.EXPAND)
 
-        vbox_list_cmd.Add(list_add_files, 0, wx.ALIGN_CENTER)
+        vbox_list_cmd.Add(self.list_add_files, 0, wx.ALIGN_CENTER)
         vbox_list_cmd.Add((8, 8))
         vbox_list_cmd.Add(list_add_path, 0, wx.ALIGN_CENTER)
         vbox_list_cmd.Add((20, 20))
         vbox_list_cmd.Add(list_clear, 0, wx.ALIGN_CENTER)
         vbox_list_cmd.Add((8, 8))
         vbox_list_cmd.Add(list_remove, 0, wx.ALIGN_CENTER)
-        vbox_list_cmd.Add((20, 20))
-        vbox_list_cmd.Add(list_close, 0, wx.ALIGN_CENTER)
+
 
         vbox_list.Add((10, 10))
         vbox_list.Add(vbox_listbox, 1, wx.EXPAND)
         vbox_list.Add((10, 10))
-        vbox_list.Add(vbox_list_cmd, 0, wx.ALIGN_CENTER)
+
         vbox_list.Add((10, 10))
-        vbox_list.Add(vbox_multi_text, 0, wx.EXPAND)
+        vbox_list.Add(vbox_multi_text, 1, wx.EXPAND)
         vbox_list.Add((10, 10))
 
-        sizer.Add((10, 10))
+        sizer.Add((5, 5))
         sizer.Add(vbox_output, flag=wx.ALIGN_LEFT)
-        sizer.Add((15, 15))
-        sizer.Add(vbox_list, 0, wx.EXPAND)
+        sizer.Add(vbox_list_cmd, 0, wx.ALIGN_LEFT)
+        sizer.Add((10, 10))
+        sizer.Add(vbox_list, 1, wx.EXPAND)
 
         panel.SetSizer(sizer)
         panel.Layout()
 
         self.listbox.SetFocus()
+        # self.list_add_files.SetFocus()
+        self.list_add_files.SetDefault()
 
-        self.Bind(wx.EVT_BUTTON, self.OnAddFiles, list_add_files)
+
+        self.Bind(wx.EVT_BUTTON, self.OnAddFiles, self.list_add_files)
         self.Bind(wx.EVT_BUTTON, self.OnAddPath, list_add_path)
         self.Bind(wx.EVT_BUTTON, self.OnListClear, list_clear)
         self.Bind(wx.EVT_BUTTON, self.OnListRemove, list_remove)
-        self.Bind(wx.EVT_BUTTON, self.OnListClose, list_close)
+
 
         self.Bind(wx.EVT_BUTTON, self.OnToPicture, self.button_to_picture)
         self.Bind(wx.EVT_BUTTON, self.OnOutput, button_output)
@@ -220,6 +225,7 @@ class MainFrame(wx.Frame):
 
         self.ListBoxDataUpdate()
         self.button_to_picture.SetFocus()
+        self.button_to_picture.SetDefault()
 
     def OnAddPath(self, event):
         input_path = ""
